@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CV - Sito personale</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="pagina-portfolio">
+  <header>
+    <nav class="nav-portafoglio" aria-label="Navigazione principale">
+      <a class="marchio" href="index.html" aria-label="Vai alla Home">SL<span>.</span></a>
+      <div class="nav-sezioni">
+        <a href="index.html#profilo">Profilo</a>
+        <a href="index.html#competenze">Competenze</a>
+        <a href="index.html#progetti">Progetti</a>
+      </div>
+      <div class="nav-pagine">
+        <a href="index.html">Home</a>
+        <a href="cv.html" aria-current="page">CV</a>
+        <a href="stage.html">Stage <span aria-hidden="true">↗</span></a>
+      </div>
+    </nav>
+  </header>
+
+  <main>
+    <h1>Curriculum vitae</h1>
+    <p id="messaggio-errore" hidden></p>
+
+    <section>
+      <h2>Informazioni personali</h2>
+      <div id="lista-dati" class="lista-cv"></div>
+    </section>
+
+    <section>
+      <h2>Istruzione</h2>
+      <div id="lista-istruzione" class="lista-cv"></div>
+    </section>
+
+    <section>
+      <h2>Esperienze di lavoro</h2>
+      <div id="lista-esperienze" class="lista-cv"></div>
+    </section>
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>

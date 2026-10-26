@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#10111b">
+  <title>Portfolio personale</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="home-page">
+  <div id="cursore" aria-hidden="true"></div>
+
+  <header>
+    <nav class="nav-portafoglio" aria-label="Navigazione principale">
+      <a class="marchio" href="#presentazione" aria-current="page" aria-label="Torna all'inizio">SL<span>.</span></a>
+      <div class="nav-sezioni">
+        <a href="#profilo">Profilo</a>
+        <a href="#competenze">Competenze</a>
+      </div>
+      <div class="nav-pagine">
+        <a href="cv.html">CV</a>
+        <a href="stage.html">Stage <span aria-hidden="true">↗</span></a>
+      </div>
+    </nav>
+  </header>
+
+  <main>
+    <p id="messaggio-errore" hidden></p>
+
+    <section id="presentazione" class="hero" aria-labelledby="nome">
+      <canvas id="hero-canvas" class="hero-canvas" aria-hidden="true"></canvas>
+      <div class="hero-copy">
+        <p class="sovratitolo"><span class="stato-punto"></span> Portfolio personale</p>
+        <h1 id="nome"></h1>
+        <h2 id="qualifica"></h2>
+        <p id="testo" class="hero-descrizione"></p>
+        <div class="hero-azioni">
+          <a class="pulsante pulsante-chiaro" href="#percorso">Scopri il mio percorso <span aria-hidden="true">↓</span></a>
+          <a class="link-hero" href="stage.html">La mia esperienza di stage <span aria-hidden="true">↗</span></a>
+        </div>
+      </div>
+      <p class="hero-coordinate" aria-hidden="true">INFORMATICA · PORTFOLIO</p>
+    </section>
+
+    <section id="profilo" class="sezione-portfolio sezione-interessi" aria-labelledby="titolo-interessi">
+      <div class="intestazione-sezione">
+        <p class="sovratitolo">Il mio mondo</p>
+        <h2 id="titolo-interessi">Interessi.</h2>
+      </div>
+      <div id="lista-passioni"></div>
+    </section>
+
+    <section id="percorso" class="sezione-portfolio" aria-labelledby="etichetta-percorso">
+      <div class="intestazione-sezione">
+        <p id="etichetta-percorso" class="sovratitolo">Il mio percorso</p>
+      </div>
+      <p id="errore-profilo" class="errore-sezione" hidden></p>
+      <div class="griglia-profilo">
+        <article class="pannello-profilo">
+          <p class="etichetta-pannello">Formazione</p>
+          <div id="anteprima-formazione"></div>
+          <a class="link-sezione" href="cv.html">Tutto il curriculum <span aria-hidden="true">↗</span></a>
+        </article>
+        <article class="pannello-profilo pannello-stage">
+          <p class="etichetta-pannello">Esperienza sul campo</p>
+          <div id="anteprima-stage"></div>
+          <a class="link-sezione" href="stage.html">Scopri lo stage <span aria-hidden="true">↗</span></a>
+        </article>
+      </div>
+    </section>
+
+    <section id="competenze" class="sezione-portfolio" aria-labelledby="titolo-competenze">
+      <div class="intestazione-sezione">
+        <h2 id="titolo-competenze">Competenze</h2>
+      </div>
+      <div id="lista-competenze" class="lista-competenze"></div>
+    </section>
+  </main>
+
+  <footer class="footer-portfolio">
+    <span>Portfolio personale</span>
+    <a href="#presentazione">Torna all’inizio ↑</a>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>
