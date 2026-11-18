@@ -6,6 +6,7 @@ const DURATA_BUFFER_SALTO = 8;
 const SIMBOLI_LIVELLO = new Set(["", "#", "P", "o", "^", "F"]);
 
 const canvas = document.getElementById("game-canvas");
+canvas.tabIndex = 0;
 const context = canvas.getContext("2d");
 const overlay = document.getElementById("game-overlay");
 const overlayTitle = document.getElementById("overlay-title");
@@ -656,22 +657,41 @@ function disegna(tempo) {
 
 function gestisciTasti(evento, premuto) {
   const tasto = evento.key.length === 1 ? evento.key.toLowerCase() : evento.key;
-  if (["ArrowLeft", "ArrowRight", " ", "Spacebar", "a", "d", "Escape", "p", "P"].includes(tasto)) {
+  const eSpazio = tasto === " " || tasto === "Spacebar";
+
+  if (eSpazio) {
+    if (!premuto) {
+      pressedKeys.delete("jump");
+      return;
+    }
+
+    const elementoAttivo = document.activeElement;
+    const focusSuControllo = elementoAttivo !== canvas && (
+      elementoAttivo.matches(
+        "button, a[href], input, select, textarea, summary, " +
+        "[role='button'], [role='link'], [role='menuitem'], [role='checkbox'], " +
+        "[role='radio'], [role='switch'], [role='tab'], [role='option']"
+      ) ||
+      elementoAttivo.isContentEditable
+    );
+
+    if (stato !== "playing" || focusSuControllo) return;
+
+    evento.preventDefault();
+    if (!pressedKeys.has("jump")) {
+      saltoRichiesto = DURATA_BUFFER_SALTO;
+    }
+    pressedKeys.add("jump");
+    return;
+  }
+
+  if (["ArrowLeft", "ArrowRight", "a", "d", "Escape", "p", "P"].includes(tasto)) {
     evento.preventDefault();
   }
 
   if (tasto === "Escape" || tasto === "p") {
     if (premuto && stato === "playing") mettiInPausa();
     else if (premuto && stato === "paused") riprendiPartita();
-    return;
-  }
-
-  if (tasto === " " || tasto === "Spacebar") {
-    if (premuto && !pressedKeys.has("jump") && stato === "playing") {
-      saltoRichiesto = DURATA_BUFFER_SALTO;
-    }
-    if (premuto) pressedKeys.add("jump");
-    else pressedKeys.delete("jump");
     return;
   }
 
