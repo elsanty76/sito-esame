@@ -4,27 +4,37 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#10111b">
-  <title>Portfolio personale</title>
+  <meta name="description" content="Portfolio personale di Santiago Loza: percorso scolastico, competenze informatiche, esperienza di stage e progetti.">
+  <title>Santiago Loza - Portfolio personale</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body class="home-page">
   <div id="cursore" aria-hidden="true"></div>
+  <a class="salta-contenuto" href="#contenuto-principale">Salta al contenuto</a>
 
   <header>
     <nav class="nav-portafoglio" aria-label="Navigazione principale">
       <a class="marchio" href="#presentazione" aria-current="page" aria-label="Torna all'inizio">SL<span>.</span></a>
-      <div class="nav-sezioni">
-        <a href="#profilo">Profilo</a>
-        <a href="#competenze">Competenze</a>
-      </div>
-      <div class="nav-pagine">
-        <a href="cv.html">CV</a>
-        <a href="stage.html">Stage <span aria-hidden="true">↗</span></a>
+      <button class="nav-toggle" type="button" aria-controls="menu-navigazione" aria-expanded="false" aria-label="Apri navigazione">
+        <span></span><span></span><span></span>
+      </button>
+      <div class="nav-menu" id="menu-navigazione">
+        <div class="nav-sezioni">
+          <a href="#profilo">Profilo</a>
+          <a href="#progetti">Progetti</a>
+          <a href="#competenze">Competenze</a>
+        </div>
+        <div class="nav-pagine">
+          <a href="index.html" aria-current="page">Home</a>
+          <a href="cv.html">CV</a>
+          <a href="stage.html">Stage</a>
+          <a href="extra.html">Extra <span aria-hidden="true">↗</span></a>
+        </div>
       </div>
     </nav>
   </header>
 
-  <main>
+  <main id="contenuto-principale" tabindex="-1">
     <p id="messaggio-errore" hidden></p>
 
     <section id="presentazione" class="hero" aria-labelledby="nome">
@@ -50,9 +60,29 @@
       <div id="lista-passioni"></div>
     </section>
 
+    <section id="progetti" class="sezione-portfolio" aria-labelledby="titolo-progetti">
+      <div class="intestazione-sezione">
+        <p class="sovratitolo">Progetto interattivo</p>
+        <h2 id="titolo-progetti">Progetti.</h2>
+      </div>
+      <article class="pannello-profilo pannello-stage progetto-neon-run">
+        <div>
+          <p class="etichetta-pannello">Platform 2D · Arcade</p>
+          <h3>NEON RUN</h3>
+          <p class="progetto-neon-descrizione">
+            Un minigioco platform nella città digitale: raccogli le monete e raggiungi il traguardo.
+          </p>
+        </div>
+        <a class="pulsante pulsante-chiaro" href="gioco.html">
+          Gioca a NEON RUN <span aria-hidden="true">↗</span>
+        </a>
+      </article>
+    </section>
+
     <section id="percorso" class="sezione-portfolio" aria-labelledby="etichetta-percorso">
       <div class="intestazione-sezione">
-        <p id="etichetta-percorso" class="sovratitolo">Il mio percorso</p>
+        <p class="sovratitolo">Formazione ed esperienza</p>
+        <h2 id="etichetta-percorso">Il mio percorso.</h2>
       </div>
       <p id="errore-profilo" class="errore-sezione" hidden></p>
       <div class="griglia-profilo">
@@ -78,7 +108,7 @@
   </main>
 
   <footer class="footer-portfolio">
-    <span>Portfolio personale</span>
+    <span>Portfolio personale · Santiago Loza</span>
     <a href="#presentazione">Torna all’inizio ↑</a>
   </footer>
 

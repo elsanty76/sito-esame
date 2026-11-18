@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0B1020">
+  <meta name="description" content="NEON RUN: un platform 2D tra le piattaforme e i pericoli della città digitale.">
+  <title>NEON RUN — Escape the Digital World</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      font-family: "Segoe UI", Arial, sans-serif;
+      font-synthesis: none;
+      text-rendering: optimizeLegibility;
+      --nr-bg: #0B1020;
+      --nr-player: #A78BFA;
+      --nr-platform: #34304F;
+      --nr-coin: #FFD166;
+      --nr-hazard: #FB4D6D;
+      --nr-goal: #38BDF8;
+      --nr-text: #F1F0FF;
+      --nr-muted: #A5A4C2;
+      --nr-accent: #8B5CF6;
+      --nr-border: rgba(165, 164, 194, 0.16);
+    }
+
+    * { box-sizing: border-box; }
+
+    html { min-width: 320px; background: var(--nr-bg); }
+
+    body {
+      min-width: 320px;
+      min-height: 100vh;
+      margin: 0;
+      color: var(--nr-text);
+      background:
+        radial-gradient(ellipse at 50% -18%, rgba(139, 92, 246, 0.18), transparent 38rem),
+        var(--nr-bg);
+    }
+
+    button, a { font: inherit; }
+    a { color: inherit; }
+    button:focus-visible, a:focus-visible {
+      outline: 3px solid var(--nr-goal);
+      outline-offset: 3px;
+    }
+
+    .game-page {
+      width: min(1280px, 100%);
+      margin: 0 auto;
+      padding: 22px clamp(16px, 4vw, 48px) 48px;
+    }
+
+    .game-topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+      margin-bottom: clamp(32px, 6vw, 64px);
+    }
+
+    .game-brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      color: var(--nr-text);
+      font-size: 0.92rem;
+      font-weight: 800;
+      letter-spacing: 0.12em;
+      text-decoration: none;
+    }
+
+    .brand-mark {
+      display: grid;
+      width: 34px;
+      height: 34px;
+      place-items: center;
+      border: 1px solid rgba(167, 139, 250, 0.5);
+      border-radius: 11px;
+      color: var(--nr-player);
+      box-shadow: inset 0 0 16px rgba(139, 92, 246, 0.16), 0 0 18px rgba(139, 92, 246, 0.12);
+    }
+
+    .back-link {
+      display: inline-flex;
+      min-height: 42px;
+      align-items: center;
+      gap: 9px;
+      padding: 8px 14px;
+      border: 1px solid var(--nr-border);
+      border-radius: 999px;
+      color: var(--nr-muted);
+      background: rgba(255, 255, 255, 0.025);
+      font-size: 0.9rem;
+      text-decoration: none;
+      transition: color 160ms ease, border-color 160ms ease, background 160ms ease;
+    }
+
+    .back-link:hover {
+      border-color: rgba(56, 189, 248, 0.4);
+      color: var(--nr-text);
+      background: rgba(56, 189, 248, 0.07);
+    }
+
+    .intro {
+      margin: 0 auto 30px;
+      text-align: center;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+      margin: 0 0 12px;
+      color: var(--nr-player);
+      font-size: 0.72rem;
+      font-weight: 750;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+    }
+
+    .eyebrow::before, .eyebrow::after {
+      width: 24px;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--nr-player));
+      content: "";
+    }
+
+    .eyebrow::after { transform: rotate(180deg); }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(3.2rem, 10vw, 7rem);
+      font-weight: 900;
+      letter-spacing: -0.085em;
+      line-height: 0.92;
+      text-shadow: 0 0 38px rgba(139, 92, 246, 0.26);
+    }
+
+    .subtitle {
+      margin: 14px 0 0;
+      color: var(--nr-muted);
+      font-size: clamp(0.75rem, 2vw, 0.94rem);
+      font-weight: 650;
+      letter-spacing: 0.24em;
+    }
+
+    .game-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 250px;
+      align-items: start;
+      gap: 20px;
+    }
+
+    .game-panel, .guide-panel {
+      border: 1px solid var(--nr-border);
+      border-radius: 20px;
+      background: linear-gradient(145deg, rgba(21, 27, 49, 0.92), rgba(13, 18, 35, 0.96));
+      box-shadow: 0 24px 70px rgba(0, 0, 0, 0.24);
+    }
+
+    .game-panel { min-width: 0; padding: 14px; }
+
+    .hud {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr)) auto auto;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .hud-stat {
+      min-width: 0;
+      padding: 8px 10px;
+      border: 1px solid rgba(165, 164, 194, 0.1);
+      border-radius: 11px;
+      background: rgba(255, 255, 255, 0.025);
+    }
+
+    .hud-label {
+      display: block;
+      margin-bottom: 2px;
+      color: var(--nr-muted);
+      font-size: 0.63rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    .hud-value {
+      display: block;
+      overflow: hidden;
+      color: var(--nr-text);
+      font-size: 0.98rem;
+      font-variant-numeric: tabular-nums;
+      font-weight: 800;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    #coin-count { color: var(--nr-coin); }
+    #life-count { color: #ff8da1; }
+    #level-count { color: var(--nr-goal); }
+
+    .game-action {
+      display: inline-flex;
+      min-height: 42px;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      padding: 8px 11px;
+      border: 1px solid var(--nr-border);
+      border-radius: 11px;
+      color: var(--nr-text);
+      background: rgba(255, 255, 255, 0.035);
+      cursor: pointer;
+      font-size: 0.78rem;
+      font-weight: 700;
+      white-space: nowrap;
+      transition: transform 150ms ease, border-color 150ms ease, background 150ms ease;
+    }
+
+    .game-action:hover:not(:disabled) {
+      transform: translateY(-1px);
+      border-color: rgba(167, 139, 250, 0.45);
+      background: rgba(139, 92, 246, 0.12);
+    }
+
+    .game-action:disabled { cursor: not-allowed; opacity: 0.45; }
+
+    .canvas-frame {
+      position: relative;
+      overflow: hidden;
+      border: 1px solid rgba(139, 92, 246, 0.28);
+      border-radius: 13px;
+      background: var(--nr-bg);
+      box-shadow: inset 0 0 38px rgba(56, 189, 248, 0.045), 0 0 28px rgba(139, 92, 246, 0.09);
+      isolation: isolate;
+    }
+
+    #game-canvas {
+      display: block;
+      width: 100%;
+      height: auto;
+      aspect-ratio: 2 / 1;
+      touch-action: none;
+    }
+
+    .game-overlay {
+      position: absolute;
+      z-index: 2;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      padding: clamp(16px, 5vw, 38px);
+      background: rgba(8, 12, 27, 0.76);
+      backdrop-filter: blur(7px);
+    }
+
+    .game-overlay[hidden] { display: none; }
+
+    .overlay-card {
+      width: min(100%, 410px);
+      padding: clamp(22px, 5vw, 36px);
+      border: 1px solid rgba(167, 139, 250, 0.32);
+      border-radius: 20px;
+      background: linear-gradient(145deg, rgba(25, 30, 55, 0.97), rgba(13, 18, 36, 0.98));
+      box-shadow: 0 18px 70px rgba(0, 0, 0, 0.42), 0 0 40px rgba(139, 92, 246, 0.12);
+      text-align: center;
+    }
+
+    .overlay-card h2 {
+      margin: 0;
+      font-size: clamp(1.7rem, 6vw, 2.45rem);
+      font-weight: 850;
+      letter-spacing: -0.055em;
+    }
+
+    .overlay-card p {
+      margin: 12px auto 22px;
+      color: var(--nr-muted);
+      font-size: 0.94rem;
+      line-height: 1.65;
+    }
+
+    .overlay-actions {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 9px;
+    }
+
+    .primary-action {
+      min-height: 46px;
+      padding: 10px 24px;
+      border: 1px solid rgba(196, 181, 253, 0.5);
+      border-radius: 999px;
+      color: white;
+      background: linear-gradient(110deg, #7C3AED, #8B5CF6 55%, #6D5BEA);
+      box-shadow: 0 8px 26px rgba(139, 92, 246, 0.3);
+      cursor: pointer;
+      font-weight: 800;
+      letter-spacing: 0.07em;
+      transition: transform 160ms ease, box-shadow 160ms ease;
+    }
+
+    .primary-action:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 32px rgba(139, 92, 246, 0.42);
+    }
+
+    .secondary-action {
+      min-height: 44px;
+      padding: 9px 18px;
+      border: 1px solid var(--nr-border);
+      border-radius: 999px;
+      color: var(--nr-text);
+      background: transparent;
+      cursor: pointer;
+      font-weight: 700;
+    }
+
+    .touch-controls {
+      display: none;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 12px 2px 0;
+    }
+
+    .touch-group { display: flex; gap: 9px; }
+
+    .touch-button {
+      display: grid;
+      width: 54px;
+      height: 48px;
+      place-items: center;
+      border: 1px solid rgba(167, 139, 250, 0.28);
+      border-radius: 13px;
+      color: var(--nr-text);
+      background: rgba(139, 92, 246, 0.12);
+      font-size: 1.1rem;
+      font-weight: 800;
+      touch-action: none;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    .touch-button[data-action="jump"] {
+      width: 100px;
+      border-color: rgba(56, 189, 248, 0.34);
+      background: rgba(56, 189, 248, 0.12);
+      font-size: 0.76rem;
+      letter-spacing: 0.06em;
+    }
+
+    .touch-button:active { background: rgba(139, 92, 246, 0.28); }
+
+    .guide-panel { padding: 20px; }
+
+    .guide-title {
+      margin: 0 0 15px;
+      color: var(--nr-text);
+      font-size: 0.78rem;
+      font-weight: 800;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+    }
+
+    .instruction-list {
+      display: grid;
+      gap: 13px;
+      padding: 0;
+      margin: 0;
+      list-style: none;
+    }
+
+    .instruction-list li {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: var(--nr-muted);
+      font-size: 0.82rem;
+      line-height: 1.45;
+    }
+
+    .instruction-icon {
+      display: grid;
+      width: 28px;
+      height: 28px;
+      flex: 0 0 28px;
+      place-items: center;
+      border: 1px solid rgba(167, 139, 250, 0.18);
+      border-radius: 8px;
+      color: var(--nr-player);
+      background: rgba(139, 92, 246, 0.08);
+      font-size: 0.72rem;
+      font-weight: 800;
+    }
+
+    .guide-note {
+      padding-top: 15px;
+      margin: 18px 0 0;
+      border-top: 1px solid var(--nr-border);
+      color: var(--nr-muted);
+      font-size: 0.74rem;
+      line-height: 1.55;
+    }
+
+    .load-error {
+      padding: 14px 18px;
+      margin: 0 0 16px;
+      border: 1px solid rgba(251, 77, 109, 0.42);
+      border-radius: 12px;
+      color: #ffd2da;
+      background: rgba(251, 77, 109, 0.09);
+    }
+
+    .load-error[hidden] { display: none; }
+
+    .game-footer {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 18px 4px 0;
+      color: rgba(165, 164, 194, 0.7);
+      font-size: 0.72rem;
+    }
+
+    @media (max-width: 860px) {
+      .game-layout { grid-template-columns: minmax(0, 1fr); }
+      .guide-panel { display: none; }
+      .touch-controls { display: flex; }
+    }
+
+    @media (max-width: 520px) {
+      .game-page { padding: 14px 12px 28px; }
+      .game-topbar { margin-bottom: 34px; }
+      .game-panel { padding: 8px; border-radius: 15px; }
+      .hud { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 5px; }
+      .hud-stat { padding: 7px 6px; }
+      .hud-label { font-size: 0.55rem; letter-spacing: 0.06em; }
+      .hud-value { font-size: 0.82rem; }
+      .game-action { min-height: 38px; padding: 6px 9px; font-size: 0.72rem; }
+      #pause-button { grid-column: span 2; }
+      #restart-button { grid-column: span 2; }
+      .canvas-frame { border-radius: 9px; }
+      .game-footer { flex-direction: column; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { scroll-behavior: auto !important; transition-duration: 0.01ms !important; }
+    }
+  </style>
+</head>
+<body>
+  <main class="game-page">
+    <header class="game-topbar">
+      <a class="game-brand" href="index.html" aria-label="Torna al portfolio">
+        <span class="brand-mark" aria-hidden="true">N</span>
+        <span>ARCADE / 01</span>
+      </a>
+      <a class="back-link" href="index.html"><span aria-hidden="true">←</span> Portfolio</a>
+    </header>
+
+    <section class="intro" aria-labelledby="game-title">
+      <p class="eyebrow">Neon arcade · platform</p>
+      <h1 id="game-title">NEON RUN</h1>
+      <p class="subtitle">ESCAPE THE DIGITAL WORLD</p>
+    </section>
+
+    <p id="load-error" class="load-error" role="alert" hidden></p>
+
+    <section class="game-layout" aria-label="Gioco NEON RUN">
+      <div class="game-panel">
+        <div class="hud" aria-label="Statistiche della partita">
+          <div class="hud-stat"><span class="hud-label">Punteggio</span><strong id="score-count" class="hud-value">0</strong></div>
+          <div class="hud-stat"><span class="hud-label">Monete</span><strong id="coin-count" class="hud-value">0 / 0</strong></div>
+          <div class="hud-stat"><span class="hud-label">Vite</span><strong id="life-count" class="hud-value">0</strong></div>
+          <div class="hud-stat"><span class="hud-label">Livello</span><strong id="level-count" class="hud-value">01</strong></div>
+          <button id="pause-button" class="game-action" type="button" disabled aria-label="Metti in pausa">Ⅱ Pausa</button>
+          <button id="restart-button" class="game-action" type="button" disabled aria-label="Ricomincia la partita">↻ Ricomincia</button>
+        </div>
+
+        <div class="canvas-frame">
+          <canvas id="game-canvas" width="960" height="480" role="img" aria-label="Campo di gioco NEON RUN. Usa le frecce per muoverti e Spazio per saltare."></canvas>
+          <div id="game-overlay" class="game-overlay" role="dialog" aria-modal="true" aria-labelledby="overlay-title" aria-describedby="overlay-description">
+            <div class="overlay-card">
+              <p class="eyebrow">Arcade protocol · 01</p>
+              <h2 id="overlay-title">NEON RUN</h2>
+              <p id="overlay-description">Usa le frecce per muoverti e SPAZIO per saltare. Raccogli le monete, evita gli spuntoni e raggiungi la bandiera finale!</p>
+              <div class="overlay-actions">
+                <button id="overlay-primary" class="primary-action" type="button" disabled>CARICAMENTO…</button>
+                <button id="overlay-secondary" class="secondary-action" type="button" hidden></button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="touch-controls" aria-label="Controlli touch">
+          <div class="touch-group">
+            <button class="touch-button" type="button" data-action="left" aria-label="Muovi a sinistra">←</button>
+            <button class="touch-button" type="button" data-action="right" aria-label="Muovi a destra">→</button>
+          </div>
+          <button class="touch-button" type="button" data-action="jump" aria-label="Salta">SALTA</button>
+        </div>
+      </div>
+
+      <aside class="guide-panel" aria-label="Come si gioca">
+        <h2 class="guide-title">Come si gioca</h2>
+        <ul class="instruction-list">
+          <li><span class="instruction-icon" aria-hidden="true">←→</span> FRECCE DIREZIONALI: muoviti.</li>
+          <li><span class="instruction-icon" aria-hidden="true">SP</span> SPAZIO: salta.</li>
+          <li><span class="instruction-icon" aria-hidden="true">✦</span> RACCOGLI LE MONETE.</li>
+          <li><span class="instruction-icon" aria-hidden="true">△</span> EVITA GLI SPUNTONI.</li>
+          <li><span class="instruction-icon" aria-hidden="true">⚑</span> RAGGIUNGI IL TRAGUARDO.</li>
+        </ul>
+        <p id="sheet-instructions" class="guide-note">Caricamento delle istruzioni…</p>
+      </aside>
+    </section>
+
+    <footer class="game-footer">
+      <span>NEON RUN · DIGITAL CITY ARCADE</span>
+      <span>FRECCE / SPAZIO <span aria-hidden="true">·</span> P o ESC per la pausa</span>
+    </footer>
+  </main>
+  <script src="gioco.js" defer></script>
+</body>
+</html>

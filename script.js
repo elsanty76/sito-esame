@@ -2,49 +2,82 @@
 const URL_HOME = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQxu8td_LkOM4lhsVE9-c19_vGCrlKW7kmhcIfZjlkxzK-nKAaG4ORVlqk8OBRf3Q3o3J1Gth4xgHCs/pub?gid=0&single=true&output=csv";
 const URL_CV = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQxu8td_LkOM4lhsVE9-c19_vGCrlKW7kmhcIfZjlkxzK-nKAaG4ORVlqk8OBRf3Q3o3J1Gth4xgHCs/pub?gid=276136081&single=true&output=csv";
 const URL_STAGE = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQxu8td_LkOM4lhsVE9-c19_vGCrlKW7kmhcIfZjlkxzK-nKAaG4ORVlqk8OBRf3Q3o3J1Gth4xgHCs/pub?gid=1495684417&single=true&output=csv";
+const URL_EXTRA = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQxu8td_LkOM4lhsVE9-c19_vGCrlKW7kmhcIfZjlkxzK-nKAaG4ORVlqk8OBRf3Q3o3J1Gth4xgHCs/pub?gid=1786561102&single=true&output=csv";
+
+const COLONNE = {
+  home: ["sezione", "titolo", "sottotitolo", "testo", "immagine", "livello"],
+  cv: ["sezione", "titolo", "sottotitolo", "periodo", "testo"],
+  stage: ["azienda", "luogo", "immagine", "settore", "attivita", "relazione"],
+  extra: ["sezione", "titolo", "descrizione", "immagine", "link", "categoria"]
+};
 
 // ---------- FUNZIONI RIUTILIZZABILI (valgono per ogni pagina) ----------
 
 // Scarica il CSV e lo trasforma in una lista di oggetti
-async function leggiFoglio(url) {
+async function leggiFoglio(url, colonneRichieste) {
   const risposta = await fetch(url);
   if (!risposta.ok) {
     throw new Error("Errore nel download: " + risposta.status);
   }
   const testo = await risposta.text();
-  return csvInOggetti(testo);
+  return csvInOggetti(testo, colonneRichieste);
 }
 
 // Trasforma il testo CSV in oggetti: la prima riga contiene i nomi delle colonne
-function csvInOggetti(testo) {
+function csvInOggetti(testo, colonneRichieste = []) {
+  const contenuto = testo.replace(/^\uFEFF/, "").replace(/\r\n?/g, "\n");
   const righe = [];
   let riga = [];
   let cella = "";
   let traVirgolette = false;
 
-  // Leggo il testo un carattere alla volta
-  for (const c of testo) {
-    if (c === '"') {
-      traVirgolette = !traVirgolette;      // entro/esco da un testo tra virgolette
+  for (let i = 0; i < contenuto.length; i++) {
+    const c = contenuto[i];
+    if (traVirgolette && c === '"' && contenuto[i + 1] === '"') {
+      cella += '"';
+      i++;
+    } else if (c === '"' && !traVirgolette && cella === "") {
+      traVirgolette = true;
+    } else if (c === '"' && traVirgolette) {
+      traVirgolette = false;
     } else if (c === "," && !traVirgolette) {
-      riga.push(cella);                    // fine cella
+      riga.push(cella);
       cella = "";
     } else if (c === "\n" && !traVirgolette) {
-      riga.push(cella);                    // fine riga
+      riga.push(cella);
       righe.push(riga);
       riga = [];
       cella = "";
-    } else if (c !== "\r") {
-      cella += c;                          // carattere normale
+    } else {
+      cella += c;
     }
   }
-  riga.push(cella);                        // ultima riga
-  righe.push(riga);
+  if (traVirgolette) {
+    throw new Error("Il CSV contiene una cella con virgolette non chiuse.");
+  }
+  if (cella !== "" || riga.length > 0) {
+    riga.push(cella);
+    righe.push(riga);
+  }
+  if (righe.length === 0) {
+    throw new Error("Il CSV è vuoto.");
+  }
 
   const intestazioni = righe[0].map(nome => nome.trim());
+  if (intestazioni.length === 0 || intestazioni.some(nome => nome === "")) {
+    throw new Error("Il CSV contiene un'intestazione vuota.");
+  }
+  if (new Set(intestazioni).size !== intestazioni.length) {
+    throw new Error("Il CSV contiene intestazioni duplicate.");
+  }
+  const colonneMancanti = colonneRichieste.filter(nome => !intestazioni.includes(nome));
+  if (colonneMancanti.length > 0) {
+    throw new Error("Nel CSV mancano queste intestazioni: " + colonneMancanti.join(", "));
+  }
+
   const oggetti = [];
   for (let i = 1; i < righe.length; i++) {
-    const oggetto = {};
+    const oggetto = Object.create(null);
     intestazioni.forEach((nome, posizione) => {
       oggetto[nome] = (righe[i][posizione] || "").trim();
     });
@@ -56,8 +89,29 @@ function csvInOggetti(testo) {
 // Mostra un messaggio d'errore al posto della pagina vuota
 function mostraErrore(messaggio) {
   const box = document.getElementById("messaggio-errore");
+  if (!box) {
+    console.error(messaggio);
+    return;
+  }
   box.textContent = messaggio;
   box.hidden = false;
+}
+
+// Accetta solo nomi di file locali semplici presenti nella cartella img
+function creaImmagineLocale(nomeFile, testoAlternativo, classe = "") {
+  const file = (nomeFile || "").trim();
+  if (!/^[a-z0-9._-]+\.(?:avif|gif|jpe?g|png|webp)$/i.test(file) || file.startsWith(".")) {
+    return null;
+  }
+
+  const immagine = document.createElement("img");
+  immagine.src = "img/" + file;
+  immagine.alt = testoAlternativo || "";
+  immagine.loading = "lazy";
+  immagine.decoding = "async";
+  if (classe) immagine.className = classe;
+  immagine.addEventListener("error", () => immagine.remove(), { once: true });
+  return immagine;
 }
 
 // ---------- RENDERING DELLA HOME ----------
@@ -71,10 +125,16 @@ function mostraHome(dati) {
     document.getElementById("testo").textContent = pres.testo;
     document.title = pres.titolo + " - Portfolio personale";
     const foto = document.getElementById("foto");
-    if (foto && pres.immagine) {
-      foto.src = "img/" + pres.immagine;
-    } else if (foto) {
-      foto.hidden = true;
+    if (foto) {
+      const immagine = creaImmagineLocale(pres.immagine, pres.titolo);
+      if (immagine) {
+        foto.src = immagine.src;
+        foto.alt = immagine.alt;
+        foto.hidden = false;
+        foto.addEventListener("error", () => { foto.hidden = true; }, { once: true });
+      } else {
+        foto.hidden = true;
+      }
     }
   }
 
@@ -90,44 +150,50 @@ function mostraHome(dati) {
     const card = document.createElement("div");
     card.className = "card";
 
-    const img = document.createElement("img");
     const chiaveImmagine = p.titolo.trim().toLowerCase();
     const nomeImmagine = immaginiPassioni[chiaveImmagine] || p.immagine;
-    if (nomeImmagine) {
-      img.src = "img/" + nomeImmagine;
-    }
-    img.alt = p.titolo;
+    const immagine = creaImmagineLocale(nomeImmagine, p.titolo);
 
     const titolo = document.createElement("h3");
     titolo.textContent = p.titolo;
 
-    const descrizione = document.createElement("p");
-    descrizione.textContent = p.testo;
-
-    if (nomeImmagine) {
-      card.appendChild(img);
+    if (immagine) card.appendChild(immagine);
+    card.appendChild(titolo);
+    if (p.testo) {
+      const descrizione = document.createElement("p");
+      descrizione.textContent = p.testo;
+      card.appendChild(descrizione);
     }
-    card.append(titolo, descrizione);
     contenitorePassioni.appendChild(card);
   });
 
   // Competenze: una barra per ogni riga (livello da 0 a 100)
   const contenitoreCompetenze = document.getElementById("lista-competenze");
   dati.filter(r => r.sezione === "competenza").forEach(c => {
+    if (!c.titolo) return;
+
     const blocco = document.createElement("div");
     blocco.className = "competenza";
 
     const nome = document.createElement("p");
-    nome.textContent = c.titolo + " (" + c.livello + "%)";
+    const valore = c.livello.trim() === "" ? NaN : Number(c.livello);
+    const livello = Number.isFinite(valore) ? Math.min(100, Math.max(0, valore)) : null;
+    nome.textContent = livello === null ? c.titolo : c.titolo + " (" + livello + "%)";
 
     const barra = document.createElement("div");
     barra.className = "barra";
 
     const piena = document.createElement("div");
     piena.className = "barra-piena";
-    const livello = Number(c.livello);
-    if (Number.isFinite(livello)) {
-      piena.style.width = Math.min(100, Math.max(0, livello)) + "%";
+    if (livello === null) {
+      barra.hidden = true;
+    } else {
+      piena.style.width = livello + "%";
+      barra.setAttribute("role", "progressbar");
+      barra.setAttribute("aria-label", c.titolo);
+      barra.setAttribute("aria-valuemin", "0");
+      barra.setAttribute("aria-valuemax", "100");
+      barra.setAttribute("aria-valuenow", String(livello));
     }
 
     barra.appendChild(piena);
@@ -193,6 +259,74 @@ function mostraAnteprimaStage(dati) {
     }
 
     contenitore.appendChild(elemento);
+  });
+}
+
+// Mostra il titolo della pagina e le schede del tab Extra
+function mostraExtra(dati) {
+  const pagina = dati.find(riga => riga.sezione === "pagina");
+  const titoloPagina = document.getElementById("titolo-extra");
+  const descrizionePagina = document.getElementById("descrizione-extra");
+
+  if (pagina && pagina.titolo) {
+    titoloPagina.textContent = pagina.titolo;
+    document.title = pagina.titolo + " - Portfolio personale";
+  }
+  if (pagina && pagina.descrizione) {
+    descrizionePagina.textContent = pagina.descrizione;
+  } else {
+    descrizionePagina.hidden = true;
+  }
+
+  const contenitore = document.getElementById("lista-extra");
+  dati.filter(riga => riga.sezione === "scheda").forEach(riga => {
+    if (!riga.titolo && !riga.descrizione && !riga.immagine &&
+        !riga.link && !riga.categoria) return;
+
+    const card = document.createElement("article");
+    card.className = "card extra-card";
+
+    const immagine = creaImmagineLocale(riga.immagine, riga.titolo, "extra-card-immagine");
+    if (immagine) card.appendChild(immagine);
+
+    if (riga.categoria) {
+      const categoria = document.createElement("p");
+      categoria.className = "extra-card-categoria";
+      categoria.textContent = riga.categoria;
+      card.appendChild(categoria);
+    }
+
+    if (riga.titolo) {
+      const titolo = document.createElement("h2");
+      titolo.textContent = riga.titolo;
+      card.appendChild(titolo);
+    }
+
+    if (riga.descrizione) {
+      const descrizione = document.createElement("p");
+      descrizione.className = "extra-card-descrizione";
+      descrizione.textContent = riga.descrizione;
+      card.appendChild(descrizione);
+    }
+
+    if (/^https?:\/\//i.test(riga.link)) {
+      try {
+        const indirizzo = new URL(riga.link);
+        if (indirizzo.protocol === "https:" || indirizzo.protocol === "http:") {
+          const pulsante = document.createElement("a");
+          pulsante.className = "extra-card-link";
+          pulsante.href = indirizzo.href;
+          pulsante.target = "_blank";
+          pulsante.rel = "noopener noreferrer";
+          pulsante.textContent = "Apri";
+          card.appendChild(pulsante);
+        }
+      } catch (errore) {
+        console.error("Il link di una scheda Extra non è valido.", errore);
+      }
+    }
+
+    if (card.childElementCount > 0) contenitore.appendChild(card);
   });
 }
 
@@ -274,12 +408,8 @@ function mostraStage(dati) {
     const card = document.createElement("div");
     card.className = "card stage-card";
 
-    if (riga.immagine) {
-      const immagine = document.createElement("img");
-      immagine.src = "img/" + riga.immagine;
-      immagine.alt = riga.azienda || "";
-      card.appendChild(immagine);
-    }
+    const immagine = creaImmagineLocale(riga.immagine, riga.azienda);
+    if (immagine) card.appendChild(immagine);
 
     if (riga.azienda) {
       const titolo = document.createElement("h2");
@@ -314,7 +444,7 @@ function mostraStage(dati) {
       card.appendChild(elenco);
     }
 
-    blocco.appendChild(card);
+    if (card.childElementCount > 0) blocco.appendChild(card);
 
     if (riga.relazione) {
       const titoloRelazione = document.createElement("h3");
@@ -327,7 +457,7 @@ function mostraStage(dati) {
       blocco.append(titoloRelazione, testoRelazione);
     }
 
-    contenitore.appendChild(blocco);
+    if (blocco.childElementCount > 0) contenitore.appendChild(blocco);
   });
 }
 
@@ -584,33 +714,89 @@ function preparaCursore(gsap) {
 
 // ---------- AVVIO ----------
 
+function inizializzaMenu() {
+  const nav = document.querySelector(".nav-portafoglio");
+  const pulsante = nav && nav.querySelector(".nav-toggle");
+  if (!nav || !pulsante) return;
+
+  document.documentElement.classList.add("nav-js");
+
+  function chiudiMenu(ripristinaFocus = false) {
+    nav.classList.remove("nav-aperta");
+    pulsante.setAttribute("aria-expanded", "false");
+    pulsante.setAttribute("aria-label", "Apri navigazione");
+    if (ripristinaFocus) pulsante.focus();
+  }
+
+  pulsante.addEventListener("click", () => {
+    const aperto = pulsante.getAttribute("aria-expanded") === "true";
+    if (aperto) {
+      chiudiMenu();
+    } else {
+      nav.classList.add("nav-aperta");
+      pulsante.setAttribute("aria-expanded", "true");
+      pulsante.setAttribute("aria-label", "Chiudi navigazione");
+    }
+  });
+
+  nav.querySelectorAll(".nav-menu a").forEach(link => {
+    link.addEventListener("click", () => chiudiMenu(true));
+  });
+
+  document.addEventListener("keydown", evento => {
+    if (evento.key === "Escape" && nav.classList.contains("nav-aperta")) {
+      chiudiMenu(true);
+    }
+  });
+
+  document.addEventListener("click", evento => {
+    if (nav.classList.contains("nav-aperta") && !nav.contains(evento.target)) {
+      chiudiMenu();
+    }
+  });
+
+  window.addEventListener("resize", () => {
+    if (window.innerWidth > 760) chiudiMenu();
+  });
+}
+
 async function avvia() {
   try {
-    if (document.getElementById("lista-stage")) {
-      const dati = await leggiFoglio(URL_STAGE);
+    if (document.getElementById("lista-extra")) {
+      const dati = await leggiFoglio(URL_EXTRA, COLONNE.extra);
+      mostraExtra(dati);
+    } else if (document.getElementById("lista-stage")) {
+      const dati = await leggiFoglio(URL_STAGE, COLONNE.stage);
       mostraStage(dati);
     } else if (document.getElementById("lista-istruzione")) {
-      const dati = await leggiFoglio(URL_CV);
+      const dati = await leggiFoglio(URL_CV, COLONNE.cv);
       mostraCv(dati);
     } else {
-      const dati = await leggiFoglio(URL_HOME);
+      const dati = await leggiFoglio(URL_HOME, COLONNE.home);
       mostraHome(dati);
       const erroreProfilo = document.getElementById("errore-profilo");
+      const [risultatoCv, risultatoStage] = await Promise.allSettled([
+        leggiFoglio(URL_CV, COLONNE.cv),
+        leggiFoglio(URL_STAGE, COLONNE.stage)
+      ]);
+      const erroriProfilo = [];
 
-      try {
-        mostraAnteprimaFormazione(await leggiFoglio(URL_CV));
-      } catch (errore) {
-        erroreProfilo.textContent = "Non riesco a caricare l'anteprima della formazione. Puoi consultare il CV completo.";
-        erroreProfilo.hidden = false;
-        console.error(errore);
+      if (risultatoCv.status === "fulfilled") {
+        mostraAnteprimaFormazione(risultatoCv.value);
+      } else {
+        erroriProfilo.push(risultatoCv.reason);
       }
-
-      try {
-        mostraAnteprimaStage(await leggiFoglio(URL_STAGE));
-      } catch (errore) {
-        erroreProfilo.textContent = "Non riesco a caricare alcune anteprime. Le pagine CV e Stage restano disponibili.";
+      if (risultatoStage.status === "fulfilled") {
+        mostraAnteprimaStage(risultatoStage.value);
+      } else {
+        erroriProfilo.push(risultatoStage.reason);
+      }
+      if (erroriProfilo.length > 0) {
+        erroreProfilo.textContent = erroriProfilo.length === 2
+          ? "Non riesco a caricare le anteprime. Le pagine CV e Stage restano disponibili."
+          : "Non riesco a caricare una delle anteprime. Puoi consultare la pagina corrispondente.";
         erroreProfilo.hidden = false;
-        console.error(errore);
+        erroriProfilo.forEach(errore => console.error(errore));
       }
     }
     preparaAnimazioni();
@@ -618,9 +804,10 @@ async function avvia() {
       console.error("Gli effetti visivi non sono riusciti ad avviarsi.", errore);
     });
   } catch (errore) {
-    mostraErrore("Non riesco a caricare i contenuti. Controlla che il foglio sia pubblicato.");
+    mostraErrore("Non riesco a leggere i contenuti. Controlla la pubblicazione del foglio e le intestazioni.");
     console.error(errore);
   }
 }
 
+inizializzaMenu();
 avvia();

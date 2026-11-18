@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#10111b">
+  <meta name="description" content="Una raccolta di lavori, progetti e interessi di Santiago Loza.">
+  <title>Extra - Portfolio personale</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="pagina-portfolio">
+  <a class="salta-contenuto" href="#contenuto-principale">Salta al contenuto</a>
+  <header>
+    <nav class="nav-portafoglio" aria-label="Navigazione principale">
+      <a class="marchio" href="index.html" aria-label="Vai alla Home">SL<span>.</span></a>
+      <button class="nav-toggle" type="button" aria-controls="menu-navigazione" aria-expanded="false" aria-label="Apri navigazione">
+        <span></span><span></span><span></span>
+      </button>
+      <div class="nav-menu" id="menu-navigazione">
+        <div class="nav-sezioni">
+          <a href="index.html#profilo">Profilo</a>
+          <a href="index.html#competenze">Competenze</a>
+        </div>
+        <div class="nav-pagine">
+          <a href="index.html">Home</a>
+          <a href="cv.html">CV</a>
+          <a href="stage.html">Stage</a>
+          <a href="extra.html" aria-current="page">Extra</a>
+        </div>
+      </div>
+    </nav>
+  </header>
+
+  <main id="contenuto-principale" tabindex="-1">
+    <section class="extra-intestazione" aria-labelledby="titolo-extra">
+      <p class="sovratitolo">Portfolio personale</p>
+      <h1 id="titolo-extra">Extra</h1>
+      <p id="descrizione-extra"></p>
+    </section>
+    <p id="messaggio-errore" hidden></p>
+    <section id="lista-extra" class="extra-griglia" aria-label="Lavori e progetti"></section>
+  </main>
+
+  <footer class="footer-portfolio">
+    <span>Portfolio personale · Santiago Loza</span>
+    <a href="index.html">Torna alla Home ↑</a>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>

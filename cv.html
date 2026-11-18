@@ -3,27 +3,35 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>CV - Sito personale</title>
+  <meta name="theme-color" content="#10111b">
+  <meta name="description" content="Curriculum di Santiago Loza: informazioni personali, formazione ed esperienze.">
+  <title>Curriculum - Santiago Loza</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body class="pagina-portfolio">
+  <a class="salta-contenuto" href="#contenuto-principale">Salta al contenuto</a>
   <header>
     <nav class="nav-portafoglio" aria-label="Navigazione principale">
       <a class="marchio" href="index.html" aria-label="Vai alla Home">SL<span>.</span></a>
-      <div class="nav-sezioni">
-        <a href="index.html#profilo">Profilo</a>
-        <a href="index.html#competenze">Competenze</a>
-        <a href="index.html#progetti">Progetti</a>
-      </div>
-      <div class="nav-pagine">
-        <a href="index.html">Home</a>
-        <a href="cv.html" aria-current="page">CV</a>
-        <a href="stage.html">Stage <span aria-hidden="true">↗</span></a>
+      <button class="nav-toggle" type="button" aria-controls="menu-navigazione" aria-expanded="false" aria-label="Apri navigazione">
+        <span></span><span></span><span></span>
+      </button>
+      <div class="nav-menu" id="menu-navigazione">
+        <div class="nav-sezioni">
+          <a href="index.html#profilo">Profilo</a>
+          <a href="index.html#competenze">Competenze</a>
+        </div>
+        <div class="nav-pagine">
+          <a href="index.html">Home</a>
+          <a href="cv.html" aria-current="page">CV</a>
+          <a href="stage.html">Stage</a>
+          <a href="extra.html">Extra <span aria-hidden="true">↗</span></a>
+        </div>
       </div>
     </nav>
   </header>
 
-  <main>
+  <main id="contenuto-principale" tabindex="-1">
     <h1>Curriculum vitae</h1>
     <p id="messaggio-errore" hidden></p>
 
@@ -42,6 +50,11 @@
       <div id="lista-esperienze" class="lista-cv"></div>
     </section>
   </main>
+
+  <footer class="footer-portfolio">
+    <span>Portfolio personale · Santiago Loza</span>
+    <a href="index.html">Torna alla Home ↑</a>
+  </footer>
 
   <script src="script.js"></script>
 </body>
